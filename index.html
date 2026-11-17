@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>DayTrack - Daily Finance Tracker</title>
+  
+  <!-- iOS & PWA Configuration -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="DayTrack">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="app-title-group">
+        <h1 class="app-title">DayTrack</h1>
+        <p class="app-subtitle" id="current-date-label">Today</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon" id="btn-open-settings" title="Settings & Data">
+          ⚙️
+        </button>
+      </div>
+    </header>
+
+    <!-- Pay Period Navigator -->
+    <div class="period-navigator" id="period-navigator">
+      <button class="period-nav-btn" id="btn-period-prev" title="Previous Pay Period" aria-label="Previous Period">&larr;</button>
+      <div class="period-select-wrap">
+        <select id="period-select" class="period-select">
+          <option value="all">All Transactions</option>
+        </select>
+      </div>
+      <button class="period-nav-btn" id="btn-period-next" title="Next Pay Period" aria-label="Next Period">&rarr;</button>
+    </div>
+
+    <!-- WALLET & BANK Split Balance Section -->
+    <section class="wallet-bank-grid">
+      <!-- Left: WALLET -->
+      <div class="card card-wallet">
+        <div class="wallet-inner-row">
+          <div class="wallet-left">
+            <div class="hero-label">WALLET</div>
+            <div class="hero-balance" id="wallet-balance">$0.00</div>
+          </div>
+          <button class="btn-wallet-add" id="btn-open-deposit" title="Add Cash" aria-label="Add Cash">+</button>
+        </div>
+      </div>
+
+      <!-- Right: BANK -->
+      <div class="card card-bank">
+        <div class="card-header-row">
+          <span class="hero-label">BANK</span>
+          <button class="btn-edit-bank" id="btn-edit-bank" title="Edit Bank Balance" aria-label="Edit Bank Balance">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="hero-balance" id="bank-balance">$0.00</div>
+      </div>
+    </section>
+
+    <!-- Quick Actions (Spend Cash) -->
+    <section class="quick-actions">
+      <button class="btn-action btn-withdraw" id="btn-open-withdraw">
+        Spend Cash
+      </button>
+    </section>
+
+    <!-- Tabs: Transactions vs Categories -->
+    <div class="tabs-container">
+      <button class="tab-btn active" data-tab="ledger">Transactions</button>
+      <button class="tab-btn" data-tab="breakdown">Categories</button>
+    </div>
+
+    <!-- TAB 1: Ledger / Transaction List -->
+    <main id="tab-content-ledger">
+      <div class="section-header">
+        <h2 class="section-title">Recent Activity</h2>
+        <span class="filter-badge" id="tx-count-badge">0 entries</span>
+      </div>
+      <div class="tx-list" id="transaction-list">
+        <!-- Transactions will be injected by app.js -->
+      </div>
+    </main>
+
+    <!-- TAB 2: Category Breakdown -->
+    <section id="tab-content-breakdown" style="display: none;">
+      <div class="section-header">
+        <h2 class="section-title">Spending by Category</h2>
+      </div>
+      <div id="category-breakdown-list" class="tx-list">
+        <!-- Category items injected here -->
+      </div>
+    </section>
+
+  </div>
+
+  <!-- MODAL: Add Cash / Deposit -->
+  <div class="modal-overlay" id="modal-deposit">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Add Cash (Wallet)</h3>
+        <button class="modal-close" id="btn-close-deposit">&times;</button>
+      </div>
+      <form id="form-deposit">
+        <div class="form-group">
+          <label class="form-label" for="deposit-amount">Amount ($)</label>
+          <input type="number" step="0.01" min="0.01" id="deposit-amount" class="form-input" placeholder="e.g. 500.00" required autofocus>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="deposit-date">Date</label>
+          <input type="date" id="deposit-date" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="deposit-source">Description</label>
+          <input type="text" id="deposit-source" class="form-input" placeholder="e.g. Bi-Weekly Allowance" required>
+        </div>
+        <button type="submit" class="btn-submit deposit">+ Add Cash</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Spend Cash / Expense -->
+  <div class="modal-overlay" id="modal-withdraw">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Spend Cash</h3>
+        <button class="modal-close" id="btn-close-withdraw">&times;</button>
+      </div>
+      <form id="form-withdraw">
+        <div class="form-group">
+          <label class="form-label" for="withdraw-amount">Amount ($)</label>
+          <input type="number" step="0.01" min="0.01" id="withdraw-amount" class="form-input" placeholder="e.g. 65.50" required autofocus>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="withdraw-date">Date</label>
+          <input type="date" id="withdraw-date" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="withdraw-desc">Description</label>
+          <input type="text" id="withdraw-desc" class="form-input" placeholder="e.g. Groceries, Electric Bill, Coffee" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="withdraw-category">Category</label>
+          <select id="withdraw-category" class="form-select">
+            <option value="Groceries & Food">🛒 Groceries & Food</option>
+            <option value="Housing & Rent">🏠 Housing & Rent</option>
+            <option value="Utilities & Bills">⚡ Utilities & Bills</option>
+            <option value="Transportation & Gas">🚗 Transportation & Gas</option>
+            <option value="Dining & Entertainment">🍿 Dining & Entertainment</option>
+            <option value="Health & Personal Care">💊 Health & Personal Care</option>
+            <option value="Subscriptions">📱 Subscriptions</option>
+            <option value="Shopping & Miscellaneous" selected>🛍️ Shopping & Misc</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-submit withdraw">&minus; Spend Cash</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Settings & Data Sync -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Settings & Storage</h3>
+        <button class="modal-close" id="btn-close-settings">&times;</button>
+      </div>
+
+      <!-- Theme Card -->
+      <div class="drive-card">
+        <div class="drive-card-title">
+          <span>🌓 Appearance & Theme</span>
+        </div>
+        <p class="drive-card-text">
+          Switch between light mode and dark mode.
+        </p>
+        <button class="btn-secondary" id="btn-modal-theme-toggle">Toggle Light / Dark Mode</button>
+      </div>
+
+      <div class="drive-card">
+        <div class="drive-card-title">
+          <span>📁 Google Drive Sync & Backup</span>
+        </div>
+        <p class="drive-card-text">
+          Keep your finances safe and accessible across your Mac, iPhone, and iPad. You can save your ledger file directly to your Google Drive folder or load an existing backup file anytime.
+        </p>
+        <div class="drive-btn-group">
+          <button class="btn-secondary" id="btn-export-json">💾 Save to Google Drive / File</button>
+          <button class="btn-secondary" id="btn-trigger-import">📂 Open from Google Drive / File</button>
+          <input type="file" id="file-import-input" accept=".json" style="display: none;">
+        </div>
+      </div>
+
+      <div class="drive-card">
+        <div class="drive-card-title">
+          <span>📊 Spreadsheet Export</span>
+        </div>
+        <p class="drive-card-text">
+          Export your transactions as a CSV spreadsheet to view or edit directly in Google Sheets or Apple Numbers.
+        </p>
+        <button class="btn-secondary" id="btn-export-csv">📥 Download CSV for Google Sheets</button>
+      </div>
+
+      <div class="drive-card">
+        <div class="drive-card-title">
+          <span>🔄 Sample Data</span>
+        </div>
+        <p class="drive-card-text">
+          Try DayTrack with sample paydays and withdrawals to see the forecasts and charts in action.
+        </p>
+        <button class="btn-secondary" id="btn-load-sample">Load Demo Data</button>
+        <button class="btn-secondary" id="btn-clear-all" style="color: var(--red);">Reset All Data</button>
+      </div>
+
+      <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 10px;">
+        Local storage is active. Changes save automatically to your browser.
+      </p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
